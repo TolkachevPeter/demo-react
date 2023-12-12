@@ -1,70 +1,166 @@
-# Getting Started with Create React App
+**Использование Unleash во фронтенд-приложениях**
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Для интеграции функциональности Unleash в фронтенд-приложение без использования собственного бэкенд-сервера, необходимо использовать как минимум одну библиотеку. Если вы работаете с чистым JavaScript, достаточно `unleash-proxy-client`. Для работы с React, Vue или Angular понадобится дополнительная библиотека.
 
-## Available Scripts
 
-In the project directory, you can run:
+**Использование Unleash в React-приложениях**
 
-### `npm start`
+Для интеграции функциональности Unleash в React-приложение установите библиотеку `@unleash/proxy-client-react`.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. **Установка зависимостей**
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+   Установите из Nexus `@unleash/proxy-client-react` и `unleash-proxy-client`:
 
-### `npm test`
+   ```bash
+   npm install @unleash/proxy-client-react unleash-proxy-client
+   # или
+   yarn add @unleash/proxy-client-react unleash-proxy-client
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. **Инициализация настроек и подключение к приложению**
 
-### `npm run build`
+   Импортируйте `FlagProvider` и инициализируйте конфигурацию Unleash:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+   ```jsx
+   import { createRoot } from 'react-dom/client';
+   import { FlagProvider } from '@unleash/proxy-client-react';
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+   const config = {
+     url: 'https://HOSTNAME/proxy',
+     clientKey: 'PROXYKEY',
+     refreshInterval: 15,
+     appName: 'your-app-name',
+   };
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+   const root = createRoot(document.getElementById('root'));
 
-### `npm run eject`
+   root.render(
+     <React.StrictMode>
+       <FlagProvider config={config}>
+         <App />
+       </FlagProvider>
+     </React.StrictMode>
+   );
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+   В качестве альтернативы, вы можете передать свой собственный клиент в `FlagProvider`:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+   ```jsx
+   import { createRoot } from 'react-dom/client';
+   import { FlagProvider, UnleashClient } from '@unleash/proxy-client-react';
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+   const client = new UnleashClient(config);
+   const root = createRoot(document.getElementById('root'));
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+   root.render(
+     <React.StrictMode>
+       <FlagProvider unleashClient={client}>
+         <App />
+       </FlagProvider>
+     </React.StrictMode>
+   );
+   ```
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+3. **Использование**
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+   - **Проверка статуса фича-тогла**
 
-### Code Splitting
+     ```jsx
+     import { useFlag } from '@unleash/proxy-client-react';
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+     const TestComponent = () => {
+       const enabled = useFlag('travel.landing');
 
-### Analyzing the Bundle Size
+       if (enabled) {
+         return <SomeComponent />;
+       }
+       return <AnotherComponent />;
+     };
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+     export default TestComponent;
+     ```
 
-### Making a Progressive Web App
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+   - **Отложенный рендеринг до получения флагов**
 
-### Advanced Configuration
+     ```jsx
+     import { useFlagsStatus } from '@unleash/proxy-client-react'
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+     const MyApp = () => {
+       const { flagsReady, flagsError } = useFlagsStatus();
 
-### Deployment
+       if (!flagsReady) {
+         return <Loading />;
+       }
+       return <MyComponent error={flagsError}/>;
+     }
+     ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+==========================================
 
-### `npm run build` fails to minify
+**Использование Unleash в проектах на чистом JavaScript**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Для работы с Unleash в проектах на чистом
+
+ JavaScript используйте библиотеку `unleash-proxy-client`.
+
+1. **Установка зависимостей**
+
+   Установите `unleash-proxy-client`:
+
+   ```bash
+   npm install unleash-proxy-client
+   # или
+   yarn add unleash-proxy-client
+   ```
+
+2. **Добавление кода и инициализация SDK**
+
+   Импортируйте `UnleashClient` и инициализируйте клиент:
+
+   ```javascript
+   import { UnleashClient } from 'unleash-proxy-client';
+
+   const unleash = new UnleashClient({
+       url: 'https://HOSTNAME/proxy',
+       clientKey: 'proxy-key',
+       appName: 'my-webapp'
+   });
+
+   unleash.start();
+   ```
+
+3. **Ожидание готовности клиента**
+
+   Слушайте событие 'ready' для работы с фича-тоглами:
+
+   ```javascript
+   unleash.on('ready', () => {
+     if (unleash.isEnabled('proxy.demo')) {
+       console.log('proxy.demo is enabled');
+     } else {
+       console.log('proxy.demo is disabled');
+     }
+   });
+   ```
+
+4. **Работа c фича-тоглами**
+
+   Работайте с вариантами фича-тоглов:
+
+   ```javascript
+
+   // Запуск начального запроса и фонового опроса
+   unleash.start();
+
+   // Получение варианта фича-тогла
+   const variant = unleash.getVariant('proxy.demo');
+   if (variant.name === 'blue') {
+     // Работа с вариантом 'blue'...
+   }
+   ```
+
+Эти инструкции помогут вам успешно интегрировать Unleash в ваше фронтенд-приложение на React или в проект на чистом JavaScript.
+
+Библиотеки для Vue/Angular на данный момент не тестировались, так как данные фреймворки используются реже.
